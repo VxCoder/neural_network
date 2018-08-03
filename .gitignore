@@ -1,0 +1,6 @@
+.project
+.pydevproject
+.settings
+*.gz
+__pycache__
+model/*
