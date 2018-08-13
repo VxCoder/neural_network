@@ -1,38 +1,17 @@
 # -*- coding: utf-8 -*-
 
-import tensorflow as tf
-import matplotlib.pyplot as plt
-from scipy.misc import imresize
-
 import pygame
 import numpy as np
 from pygame.locals import *
-
-import mnist_inference
-import mnist_load
+from scipy.misc import imresize
+from save_restore import SaveRestore
 
 
 WORLD_SIZE = None
-FACTOR = 10
 CLICK_SIZE = 50
 FRAME = 180
 BLOD = 3
 SHOW_STRING = ""
-
-
-def show_data(world_data):
-    fig, ax = plt.subplots(
-        nrows=2,
-        ncols=1,
-        sharex=True,
-        sharey=True, )
-
-    ax = ax.flatten()
-
-    ax[0].imshow(world_data, cmap='Greys', interpolation='nearest')
-
-    plt.tight_layout()
-    plt.show()
 
 
 def recognition_num(world_data):
@@ -40,12 +19,15 @@ def recognition_num(world_data):
 
     world_data = world_data.T
     world_data = imresize(world_data, (28, 28), interp='cubic')
-    result = mnist_load.load(world_data.reshape((1, mnist_inference.INPUT_NODE)))
-    SHOW_STRING = f"you write number is {result[0]}"
+    ai = SaveRestore()
+    model = ai.create_model()
+    model.load_weights(ai.CHECKPOINT_PATH)
+    number = ai.predict(model, world_data.reshape(-1, 28 * 28))
+
+    SHOW_STRING = f"you write number is {number}"
 
 
 def world_init(size):
-
     return np.zeros(size)
 
 

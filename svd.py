@@ -30,7 +30,7 @@ def add_noise(data):
 def svd(data):
     M, segma, VT = np.linalg.svd(data)
     segma_len = len(segma)
-    segma[segma_len - 10:] = 0
+    segma[segma_len // 2:] = 0
     segma = np.eye(M.shape[1], VT.shape[0]) * segma.reshape(segma_len, 1)
     ori_data = np.dot(M, np.dot(segma, VT))
 

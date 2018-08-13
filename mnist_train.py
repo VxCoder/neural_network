@@ -1,13 +1,15 @@
 # -*- coding: utf-8 -*-
 import os
+
+import numpy as np
 import tensorflow as tf
 from tensorflow.examples.tutorials.mnist import input_data
 
 import mnist_inference
 
-BATCH_SIZE = 100  # 训练数据个数. 数据越大-> 梯度下降   数据越小-> 随机梯度下降
+BATCH_SIZE = 50  # 训练数据个数. 数据越大-> 梯度下降   数据越小-> 随机梯度下降
 
-LEARNING_RATE_BASE = 0.8  # 基础学习率
+LEARNING_RATE_BASE = 0.01  # 基础学习率
 LEARNING_RATE_DECAY = 0.99  # 学习率的衰减率
 
 REGULARIZTION_RATE = 0.0001  # 正则化系数
@@ -19,14 +21,18 @@ MODEL_NAME = "model.ckpt"
 
 def train(mnist):
 
-    x = tf.placeholder(tf.float32, shape=[None, mnist_inference.INPUT_NODE], name='x-input')  # 输入
+    # x = tf.placeholder(tf.float32, shape=[None, mnist_inference.INPUT_NODE], name='x-input')  # 输入
+
+    x = tf.placeholder(tf.float32, [BATCH_SIZE, mnist_inference.IMAGE_SIZE, mnist_inference.IMAGE_SIZE, mnist_inference.NUM_CHANNELS], name='x-input')
+
     y_ = tf.placeholder(tf.float32, shape=[None, mnist_inference.OUTPUT_NODE], name='y_input')  # 标签
 
     # 正则化函数
     regularizer = tf.contrib.layers.l2_regularizer(REGULARIZTION_RATE)
 
     # 前向传播
-    y = mnist_inference.inference(x, regularizer=regularizer)
+    # y = mnist_inference.inference(x, regularizer=regularizer)  # 全连接神经网络
+    y = mnist_inference.cnn_inference(x, train=True, regularizer=regularizer)  # cnn神经网络
 
     global_step = tf.Variable(0, trainable=False)
 
@@ -60,10 +66,14 @@ def train(mnist):
 
         for i in range(TRAINING_STEPS):
             xs, ys = mnist.train.next_batch(BATCH_SIZE)
+            xs = np.reshape(xs, (BATCH_SIZE,
+                                 mnist_inference.IMAGE_SIZE,
+                                 mnist_inference.IMAGE_SIZE,
+                                 mnist_inference.NUM_CHANNELS))
             _, loss_value, step = sess.run([train_op, loss, global_step],
                                            feed_dict={x: xs, y_: ys})
 
-            if i % 1000 != 0:
+            if i % 10 != 0:
                 continue
 
             # 显示模式损失函数大小,并保存模型
